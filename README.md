@@ -39,6 +39,7 @@ No subscriptions. No manual work. No paid services.
 | 🆓 **Completely free** | Built on YUZU AppScreen (open-source) + Playwright |
 | 🚀 **Fastlane-ready** | Output matches Fastlane's `deliver` directory structure |
 | 🔁 **Retry logic** | Automatic recovery from browser crashes and timeouts |
+| 📤 **Upload to ASC** | One command uploads to App Store Connect via fastlane deliver |
 
 ---
 
@@ -173,6 +174,84 @@ fastlane/screenshots/
 
 ---
 
+## Upload to App Store Connect
+
+After generating screenshots, upload them directly to App Store Connect:
+
+### Prerequisites
+
+- **[fastlane](https://docs.fastlane.tools/)** — `gem install fastlane`
+- **App Store Connect API Key** — [Create one here](https://appstoreconnect.apple.com/access/integrations/api) (App Manager role)
+
+### Setup
+
+Place your `.p8` key file in the standard location:
+
+```bash
+mkdir -p ~/.appstoreconnect/private_keys
+cp AuthKey_XXXXXXXXXX.p8 ~/.appstoreconnect/private_keys/
+```
+
+### Option 1: Config-driven (recommended)
+
+Add the `upload` section to your `config.json`:
+
+```json
+{
+  "upload": {
+    "appId": "com.example.myapp",
+    "keyId": "XXXXXXXXXX",
+    "issuerId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  }
+}
+```
+
+Then run:
+
+```bash
+./upload.sh
+```
+
+### Option 2: CLI flags
+
+```bash
+./upload.sh --app-id com.example.myapp --key-id XXXXXXXXXX --issuer-id xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+```
+
+### Option 3: Environment variables
+
+```bash
+export ASC_APP_ID=com.example.myapp
+export ASC_KEY_ID=XXXXXXXXXX
+export ASC_ISSUER_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+./upload.sh
+```
+
+### Option 4: Full pipeline
+
+```bash
+./pipeline.sh --skip-extract --upload
+```
+
+### Upload CLI Reference
+
+```
+./upload.sh [options]
+
+Options:
+  --config <path>           Path to config file (default: config.json)
+  --key-id <id>             App Store Connect API Key ID
+  --issuer-id <id>          App Store Connect Issuer ID
+  --key-path <path>         Path to .p8 API key file
+  --app-id <bundle-id>      App bundle identifier
+  --skip-staging            Skip screenshot staging (use existing staged files)
+  --dry-run                 Stage screenshots but don't upload
+```
+
+The upload script automatically maps locale directories (e.g., `en`, `de`) to App Store Connect locale codes (`en-US`, `de-DE`), flattens the device subdirectories, and invokes fastlane deliver.
+
+---
+
 ## Configuration Reference
 
 ### `screenshots[]`
@@ -217,6 +296,15 @@ fastlane/screenshots/
 | `cornerRadius` | `number` | *(optional)* Per-size corner radius override |
 | `border` | `object` | *(optional)* Per-size border: `{ "width": 5, "color": "#8B6914", "opacity": 100 }` |
 
+### `upload` (optional)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `appId` | `string` | App bundle identifier (e.g. `"com.example.myapp"`) |
+| `keyId` | `string` | App Store Connect API Key ID |
+| `issuerId` | `string` | App Store Connect Issuer ID (UUID format) |
+| `keyPath` | `string` | *(optional)* Path to `.p8` key file. Defaults to `~/.appstoreconnect/private_keys/AuthKey_{keyId}.p8` |
+
 #### Supported `yuzuDevice` values
 
 | Value | Device |
@@ -248,6 +336,7 @@ Options:
 ```
 appshot/
 ├── generate.mjs            # Main automation engine (Playwright → YUZU)
+├── upload.sh               # Upload screenshots to App Store Connect
 ├── config.example.json     # Template config — copy to config.json
 ├── docker-compose.yml      # YUZU AppScreen Docker setup
 ├── pipeline.sh             # End-to-end pipeline script (optional)
@@ -294,6 +383,7 @@ Set `design.text.font` to any name from [fonts.google.com](https://fonts.google.
 | [Playwright](https://playwright.dev) | Browser automation — drives YUZU headlessly |
 | [Docker](https://www.docker.com) | Runs YUZU AppScreen as a local web service |
 | [Node.js](https://nodejs.org) | Runtime for the automation engine |
+| [fastlane](https://docs.fastlane.tools) | *(optional)* Uploads screenshots to App Store Connect |
 
 ---
 

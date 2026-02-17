@@ -10,6 +10,7 @@ raw-*/
 # Generated output
 output/
 fastlane/screenshots/
+.upload-staging/
 
 # Temp configs
 config-*.json

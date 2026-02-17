@@ -18,8 +18,10 @@
 #   3. Extract raw screenshots from .xcresult
 #   4. Generate framed screenshots with YUZU
 #   5. Organize output to fastlane/screenshots/
-#   6. Stop YUZU Docker container
-#   7. Print summary report
+#   6. (reserved)
+#   7. Upload to App Store Connect (if --upload)
+#   8. Stop YUZU Docker container
+#   9. Print summary report
 
 set -euo pipefail
 
@@ -38,6 +40,7 @@ START_TIME=$(date +%s)
 
 SKIP_EXTRACT=false
 SKIP_CLEANUP=false
+UPLOAD=false
 XCRESULT_PATH=""
 
 # ============================================================================
@@ -89,6 +92,7 @@ Usage: $(basename "$0") [OPTIONS]
 Options:
   --skip-extract              Skip raw screenshot extraction (use existing raw/ files)
   --skip-cleanup              Leave YUZU Docker container running after completion
+  --upload                    Upload screenshots to App Store Connect after generation
   --xcresult-path <path>      Path to .xcresult bundle (required unless --skip-extract)
   --help                      Show this help message
 
@@ -100,7 +104,8 @@ Description:
   4. Generate framed screenshots with YUZU
   5. Organize output to fastlane/screenshots/
   6. Stop YUZU Docker container (unless --skip-cleanup)
-  7. Print summary report
+  7. Upload to App Store Connect (if --upload)
+  8. Print summary report
 
 Examples:
   # Full pipeline with extraction
@@ -108,6 +113,9 @@ Examples:
 
   # Skip extraction (use existing raw/ screenshots)
   $(basename "$0") --skip-extract
+
+  # Generate and upload to App Store Connect
+  $(basename "$0") --skip-extract --upload
 
   # Skip cleanup (leave YUZU running for debugging)
   $(basename "$0") --skip-extract --skip-cleanup
@@ -329,15 +337,37 @@ organize_output() {
     print_success "Organized $total_files screenshots to $dest_dir"
 }
 
+upload_to_asc() {
+    if [[ "$UPLOAD" == false ]]; then
+        print_step "Step 7: Upload to App Store Connect [SKIPPED]"
+        print_info "Use --upload flag to enable uploading"
+        return
+    fi
+    
+    print_step "Step 7: Upload to App Store Connect"
+    
+    if [[ ! -x "$SCRIPT_DIR/upload.sh" ]]; then
+        print_error "upload.sh not found or not executable"
+        exit 1
+    fi
+    
+    if "$SCRIPT_DIR/upload.sh" --config "$CONFIG_FILE"; then
+        print_success "Screenshots uploaded to App Store Connect"
+    else
+        print_error "Upload failed"
+        exit 1
+    fi
+}
+
 stop_yuzu() {
     if [[ "$SKIP_CLEANUP" == true ]]; then
-        print_step "Step 6: Stop YUZU Docker Container [SKIPPED]"
+        print_step "Step 8: Stop YUZU Docker Container [SKIPPED]"
         print_info "YUZU container left running (use 'docker compose down' to stop manually)"
         DOCKER_RUNNING=false
         return
     fi
     
-    print_step "Step 6: Stop YUZU Docker Container"
+    print_step "Step 8: Stop YUZU Docker Container"
     
     cd "$SCRIPT_DIR"
     
@@ -351,7 +381,7 @@ stop_yuzu() {
 }
 
 print_summary() {
-    print_step "Step 7: Summary Report"
+    print_step "Step 9: Summary Report"
     
     local dest_dir="$SCRIPT_DIR/fastlane/screenshots"
     
@@ -401,6 +431,10 @@ main() {
                 SKIP_CLEANUP=true
                 shift
                 ;;
+            --upload)
+                UPLOAD=true
+                shift
+                ;;
             --xcresult-path)
                 XCRESULT_PATH="$2"
                 shift 2
@@ -428,6 +462,7 @@ main() {
     extract_screenshots
     generate_screenshots
     organize_output
+    upload_to_asc
     stop_yuzu
     print_summary
     

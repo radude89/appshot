@@ -89,5 +89,12 @@
       }
     ],
     "path": "fastlane/screenshots"
+  },
+  "upload": {
+    "_comment": "App Store Connect credentials for uploading screenshots via fastlane. All fields can also be set via CLI flags or environment variables.",
+    "appId": "com.example.myapp",
+    "keyId": "YOUR_KEY_ID",
+    "issuerId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "keyPath": "~/.appstoreconnect/private_keys/AuthKey_YOUR_KEY_ID.p8"
   }
 }
