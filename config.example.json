@@ -1,0 +1,93 @@
+{
+  "_comment": "Screenshot configuration for your app. Copy to config.json and customize.",
+  "screenshots": [
+    {
+      "id": "screen-1",
+      "_comment": "Unique ID used for output filename",
+      "titles": {
+        "en": "Your headline here",
+        "de": "Ihre Überschrift hier",
+        "es": "Tu titular aquí",
+        "fr": "Votre titre ici",
+        "it": "Il tuo titolo qui",
+        "ro": "Titlul tău aici"
+      }
+    },
+    {
+      "id": "screen-2",
+      "titles": {
+        "en": "Another great feature",
+        "de": "Eine weitere tolle Funktion",
+        "es": "Otra gran característica",
+        "fr": "Une autre fonctionnalité",
+        "it": "Un'altra grande funzionalità",
+        "ro": "O altă funcție grozavă"
+      }
+    }
+  ],
+  "design": {
+    "background": {
+      "type": "gradient",
+      "color1": "#F0B263",
+      "color2": "#FFD89B",
+      "angle": 135
+    },
+    "device": {
+      "type": "2D",
+      "preset": "Bleed Bottom",
+      "cornerRadius": 24
+    },
+    "text": {
+      "font": "Open Sans",
+      "headlineWeight": "900",
+      "headlineColor": "#000000",
+      "subheadline": false,
+      "verticalOffset": 5
+    }
+  },
+  "output": {
+    "sizes": [
+      {
+        "device": "iPhone 6.9\"",
+        "width": 1320,
+        "height": 2868,
+        "yuzuDevice": "iphone-6.9",
+        "rawDir": "raw"
+      },
+      {
+        "device": "iPhone 6.7\"",
+        "width": 1290,
+        "height": 2796,
+        "yuzuDevice": "iphone-6.7",
+        "rawDir": "raw"
+      },
+      {
+        "device": "iPad 12.9\"",
+        "width": 2048,
+        "height": 2732,
+        "yuzuDevice": "ipad-12.9",
+        "rawDir": "raw-ipad-12.9",
+        "cornerRadius": 5,
+        "border": {
+          "width": 5,
+          "color": "#8B6914",
+          "opacity": 100
+        }
+      },
+      {
+        "device": "iPad 13\"",
+        "width": 2064,
+        "height": 2752,
+        "yuzuDevice": "custom",
+        "rawDir": "raw-ipad-13",
+        "cornerRadius": 5,
+        "border": {
+          "width": 5,
+          "color": "#8B6914",
+          "opacity": 100
+        }
+      }
+    ],
+    "path": "fastlane/screenshots"
+  }
+}
