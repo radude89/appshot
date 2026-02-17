@@ -1,27 +1,83 @@
-# appshot
+<div align="center">
 
-> Batch-generate beautiful App Store screenshots for every locale and device size — free, automated, config-driven.
+# 📸 appshot
 
-appshot automates [YUZU AppScreen](https://github.com/YUZU-Hub/appscreen) (open-source, MIT) via Playwright to produce framed App Store screenshots with gradient backgrounds, 2D device frames, and localized headlines. One config file. One command. All 144 screenshots.
+**Batch-generate beautiful App Store screenshots — free, automated, config-driven.**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-green?logo=node.js)](https://nodejs.org)
+[![Playwright](https://img.shields.io/badge/Playwright-automation-blueviolet?logo=playwright)](https://playwright.dev)
+[![Docker](https://img.shields.io/badge/Docker-required-blue?logo=docker)](https://www.docker.com)
+[![Powered by YUZU](https://img.shields.io/badge/Powered%20by-YUZU%20AppScreen-orange)](https://github.com/YUZU-Hub/appscreen)
+
+*One config file. One command. Every locale. Every device size.*
+
+</div>
+
+---
+
+## What is appshot?
+
+appshot automates [YUZU AppScreen](https://github.com/YUZU-Hub/appscreen) (open-source, MIT) via [Playwright](https://playwright.dev) to produce pixel-perfect, framed App Store screenshots at scale — gradient backgrounds, 2D device frames, localized headlines — for every locale and device size at once.
+
+No subscriptions. No manual work. No paid services.
+
+```
+6 screens × 6 locales × 4 device sizes = 144 screenshots in one run
+```
+
+---
 
 ## Features
 
-- **Config-driven** — all settings in `config.json`: screenshots, locales, sizes, colors, fonts
-- **Multi-locale** — generates screenshots for every language in parallel
-- **All device sizes** — iPhone 6.9", iPhone 6.7", iPad 12.9", iPad 13" (custom size support)
-- **Beautiful frames** — gradient backgrounds, Bleed Bottom device position, custom fonts via Google Fonts
-- **Free** — built on YUZU AppScreen (open-source) + Playwright, no paid services
-- **Fastlane-ready** — output organized as `fastlane/screenshots/{locale}/{DeviceSize}/`
+| | |
+|---|---|
+| 🎨 **Beautiful frames** | Gradient backgrounds, Bleed Bottom device position, Google Fonts |
+| 🌍 **Multi-locale** | One config drives all languages — runs in parallel |
+| 📱 **All device sizes** | iPhone 6.9", 6.7", iPad 12.9", 13" — custom sizes too |
+| ⚙️ **Config-driven** | Everything in `config.json`: screens, titles, colors, fonts, sizes |
+| 🆓 **Completely free** | Built on YUZU AppScreen (open-source) + Playwright |
+| 🚀 **Fastlane-ready** | Output matches Fastlane's `deliver` directory structure |
+| 🔁 **Retry logic** | Automatic recovery from browser crashes and timeouts |
+
+---
+
+## How it works
+
+```
+Your raw PNGs  ──►  YUZU AppScreen (Docker)  ──►  Framed screenshots
+                         ▲
+                    Playwright automation
+                    (driven by config.json)
+```
+
+1. **You provide** raw screenshots (one per screen per locale) and a `config.json`
+2. **appshot starts** YUZU AppScreen locally via Docker
+3. **Playwright drives** YUZU to apply your design: gradient background, device frame, headline text
+4. **Output lands** in `fastlane/screenshots/{locale}/{DeviceSize}/` — ready to upload
+
+---
 
 ## Requirements
 
-- [Docker](https://www.docker.com/) — to run YUZU AppScreen locally
-- [Node.js](https://nodejs.org/) 18+
-- [Playwright](https://playwright.dev/) (installed via npm)
+- **[Docker](https://www.docker.com/)** — runs YUZU AppScreen locally
+- **[Node.js](https://nodejs.org/) 18+**
+- **[Git](https://git-scm.com/)** — to clone YUZU
 
-## Setup
+---
 
-### 1. Build YUZU AppScreen Docker image
+## Installation
+
+### 1. Clone appshot
+
+```bash
+git clone https://github.com/radude89/appshot.git
+cd appshot
+npm install
+npx playwright install chromium
+```
+
+### 2. Build YUZU AppScreen (one-time setup)
 
 ```bash
 git clone https://github.com/YUZU-Hub/appscreen.git /tmp/yuzu-appscreen
@@ -29,94 +85,228 @@ cd /tmp/yuzu-appscreen
 docker build -t yuzu-appscreen:local .
 ```
 
-### 2. Install dependencies
+---
 
-```bash
-npm install
-npx playwright install chromium
-```
+## Quick Start
 
-### 3. Configure
+### 1. Configure
 
 ```bash
 cp config.example.json config.json
 ```
 
-Edit `config.json`:
-- Add your screenshots under `"screenshots"` — one entry per screen, with localized titles
-- Set your `"design"` preferences (colors, font, text position)
-- Configure `"output.sizes"` for the device sizes you need
+Edit `config.json` with your app's screens and localized titles:
 
-### 4. Add raw screenshots
+```json
+{
+  "screenshots": [
+    {
+      "id": "home-screen",
+      "titles": {
+        "en": "Everything in one place",
+        "de": "Alles an einem Ort",
+        "fr": "Tout en un seul endroit"
+      }
+    }
+  ],
+  "design": {
+    "background": { "color1": "#F0B263", "color2": "#FFD89B", "angle": 135 },
+    "text": {
+      "font": "Open Sans",
+      "headlineWeight": "900",
+      "headlineColor": "#000000",
+      "verticalOffset": 5
+    }
+  }
+}
+```
 
-Place your raw (unframed) screenshots in the raw directories:
+### 2. Add your raw screenshots
 
 ```
-raw/                  # iPhone screenshots
+raw/                        ← iPhone screenshots
   en/
-    screen-1.png      # filename must match screenshot "id" in config.json
-    screen-2.png
+    home-screen.png         ← filename = screenshot "id" from config.json
   de/
-    screen-1.png
-    ...
-raw-ipad-12.9/        # iPad 12.9" screenshots (same structure)
-raw-ipad-13/          # iPad 13" screenshots (same structure)
+    home-screen.png
+  fr/
+    home-screen.png
+
+raw-ipad-12.9/              ← iPad 12.9" screenshots (same structure)
+raw-ipad-13/                ← iPad 13" screenshots (same structure)
 ```
 
-### 5. Start YUZU and generate
+> **Tip:** The filename must exactly match the `"id"` field in your config.
+
+### 3. Generate
 
 ```bash
 # Start YUZU
 docker compose up -d
 
-# Generate all screenshots
+# Run appshot
 node generate.mjs
 
-# Or with a custom config
-node generate.mjs --config my-app-config.json
+# Custom config
+node generate.mjs --config my-app.json
+
+# Custom YUZU URL (if not running on localhost:8080)
+node generate.mjs --yuzu-url http://localhost:9090
 ```
 
-## Output
-
-Screenshots are saved to `fastlane/screenshots/{locale}/{DeviceSize}/`:
+### 4. Collect your screenshots
 
 ```
 fastlane/screenshots/
 ├── en/
 │   ├── iPhone_6.9_/
-│   │   ├── screen-1.png
-│   │   └── screen-2.png
+│   │   └── home-screen.png
+│   ├── iPhone_6.7_/
+│   │   └── home-screen.png
 │   └── iPad_12.9_/
-│       └── ...
+│       └── home-screen.png
 ├── de/
 │   └── ...
-└── ...
+└── fr/
+    └── ...
 ```
+
+---
 
 ## Configuration Reference
 
-| Field | Description |
-|-------|-------------|
-| `screenshots[].id` | Filename (without extension) for the output screenshot |
-| `screenshots[].titles` | Localized headline text per locale code |
-| `design.background.color1/2` | Gradient start/end colors (hex) |
-| `design.background.angle` | Gradient angle in degrees |
-| `design.device.cornerRadius` | Device frame corner radius (default: 24 for iPhones) |
-| `design.text.font` | Google Fonts font name |
-| `design.text.headlineWeight` | Font weight: 300–900 |
-| `design.text.headlineColor` | Headline color (hex) |
-| `design.text.verticalOffset` | Text vertical position (0–100%) |
-| `output.sizes[].yuzuDevice` | YUZU device key: `iphone-6.9`, `iphone-6.7`, `ipad-12.9`, `ipad-11`, `custom` |
-| `output.sizes[].rawDir` | Directory containing raw screenshots for this size |
-| `output.sizes[].cornerRadius` | Per-size corner radius override |
-| `output.sizes[].border` | Per-size border: `{ width, color, opacity }` |
+### `screenshots[]`
 
-## CLI Options
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Output filename (without `.png`). Must match your raw screenshot filenames. |
+| `titles` | `object` | Localized headline text. Keys are locale codes (`en`, `de`, `fr`, `es`, `it`, `ro`, …). |
+
+### `design.background`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `color1` | `string` | Gradient start color (hex, e.g. `"#F0B263"`) |
+| `color2` | `string` | Gradient end color (hex) |
+| `angle` | `number` | Gradient angle in degrees (e.g. `135` for diagonal) |
+
+### `design.device`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `cornerRadius` | `number` | Default corner radius for device frame (24 for iPhones, 5 for iPads) |
+
+### `design.text`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `font` | `string` | Any [Google Fonts](https://fonts.google.com) font name (e.g. `"Open Sans"`, `"Inter"`) |
+| `headlineWeight` | `string` | Font weight: `"300"` Light → `"400"` Regular → `"700"` Bold → `"900"` Black |
+| `headlineColor` | `string` | Headline color (hex, e.g. `"#000000"`) |
+| `verticalOffset` | `number` | Text vertical position as % from top (0–100). `5` keeps text near the top. |
+| `subheadline` | `boolean` | Enable/disable subheadline text (default: `false`) |
+
+### `output.sizes[]`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `device` | `string` | Human-readable label (e.g. `"iPhone 6.9\""`) |
+| `width` / `height` | `number` | Output dimensions in pixels |
+| `yuzuDevice` | `string` | YUZU device key — see table below |
+| `rawDir` | `string` | Directory containing raw screenshots for this size |
+| `cornerRadius` | `number` | *(optional)* Per-size corner radius override |
+| `border` | `object` | *(optional)* Per-size border: `{ "width": 5, "color": "#8B6914", "opacity": 100 }` |
+
+#### Supported `yuzuDevice` values
+
+| Value | Device |
+|-------|--------|
+| `iphone-6.9` | iPhone 6.9" (1320×2868) |
+| `iphone-6.7` | iPhone 6.7" (1290×2796) |
+| `iphone-6.5` | iPhone 6.5" |
+| `iphone-5.5` | iPhone 5.5" |
+| `ipad-12.9` | iPad 12.9" (2048×2732) |
+| `ipad-11` | iPad 11" |
+| `custom` | Custom size — set `width` and `height` |
+
+---
+
+## CLI Reference
 
 ```
-node generate.mjs [--config path/to/config.json] [--yuzu-url http://localhost:8080]
+node generate.mjs [options]
+
+Options:
+  --config <path>      Path to config file (default: config.json)
+  --yuzu-url <url>     YUZU AppScreen URL (default: auto-detect at localhost:8080)
 ```
+
+---
+
+## Project Structure
+
+```
+appshot/
+├── generate.mjs            # Main automation engine (Playwright → YUZU)
+├── config.example.json     # Template config — copy to config.json
+├── docker-compose.yml      # YUZU AppScreen Docker setup
+├── pipeline.sh             # End-to-end pipeline script (optional)
+├── extract-screenshots.sh  # Extract raws from Xcode .xcresult bundles
+├── raw/                    # Your iPhone raw screenshots (gitignored)
+├── raw-ipad-12.9/          # Your iPad 12.9" raws (gitignored)
+├── raw-ipad-13/            # Your iPad 13" raws (gitignored)
+└── fastlane/screenshots/   # Generated output (gitignored)
+```
+
+---
+
+## Tips & Tricks
+
+**Use different configs for different apps**
+```bash
+node generate.mjs --config apps/myapp.json
+node generate.mjs --config apps/otherapp.json
+```
+
+**Generate only specific sizes**  
+Remove unwanted entries from `output.sizes` in your config, or create a trimmed config file.
+
+**iPad-specific styling**  
+Use per-size `cornerRadius` and `border` overrides — iPads look great with a subtle border:
+```json
+{
+  "device": "iPad 12.9\"",
+  "cornerRadius": 5,
+  "border": { "width": 5, "color": "#8B6914", "opacity": 100 }
+}
+```
+
+**Any Google Font works**  
+Set `design.text.font` to any name from [fonts.google.com](https://fonts.google.com) — YUZU loads them automatically.
+
+---
+
+## Dependencies
+
+| Dependency | Purpose |
+|------------|---------|
+| [YUZU AppScreen](https://github.com/YUZU-Hub/appscreen) | Open-source screenshot framing tool (runs in Docker) |
+| [Playwright](https://playwright.dev) | Browser automation — drives YUZU headlessly |
+| [Docker](https://www.docker.com) | Runs YUZU AppScreen as a local web service |
+| [Node.js](https://nodejs.org) | Runtime for the automation engine |
+
+---
 
 ## License
 
-MIT
+MIT © [Radu Dan](https://github.com/radude89)
+
+---
+
+<div align="center">
+
+Built with ❤️ for indie iOS developers tired of manual screenshot work.
+
+**[⭐ Star on GitHub](https://github.com/radude89/appshot)** if appshot saves you time!
+
+</div>
